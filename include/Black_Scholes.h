@@ -4,6 +4,8 @@
 #include <cmath>
 #include <boost/math/distributions/normal.hpp>
 
+using namespace std;
+
 class Black_Scholes
 {
     public:
