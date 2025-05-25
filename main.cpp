@@ -10,6 +10,9 @@
 #include "Black_Scholes.h"
 #include "Financial_Analysis.h"
 #include "Monte_Carlo.h"
+#include "Linear_Regression.h"
+#include "Black_Scholes_FD.h"
+
 
 using namespace std;
 using json = nlohmann::json;
@@ -51,6 +54,27 @@ void evaluate_trades(const vector<OptionData>& options, double r, double sigma) 
     }
 }
 
+void evaluate_trades_FD(const vector<OptionData>& options, double r, double sigma) {
+    for (const auto& option : options) {
+        Black_Scholes_FD FD(option.S, option.K, option.T, r, sigma, 1001, 101, 250000,option.is_call);
+        FD.solve();
+        double fdm_price = FD.get_option_price(option.S);
+        if (option.market_price < fdm_price * 0.95) {
+            cout << "Buy " << (option.is_call ? "Call" : "Put")
+                      << " (Stock: " << option.S
+                      << ", Strike: " << option.K
+                      << ", Finite Difference: " << fdm_price
+                      << ", Market: " << option.market_price << ")" << endl;
+        } else {
+            cout << "Don't Buy " << (option.is_call ? "Call" : "Put")
+                      << " (Stock: " << option.S
+                      << ", Strike: " << option.K
+                      << ", Finite Difference: " << fdm_price
+                      << ", Market: " << option.market_price << ")" << endl;
+        }
+    }
+}
+
 void evaluate_trades_mc(const vector<OptionData>& options, double r, double sigma, int num_sims) {
     Monte_Carlo MC;
     for (const auto& option : options) {
@@ -79,7 +103,7 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* s) 
     return size * nmemb;
 }
 
-vector<OptionData> fetch_market_data(const string& symbol, vector<double>& close) {
+vector<OptionData> fetch_market_data(const string& symbol, vector<double>& close, vector<double>& dayInd) {
     CURL* curl = curl_easy_init();
     string response;
     vector<OptionData> options;
@@ -99,8 +123,11 @@ vector<OptionData> fetch_market_data(const string& symbol, vector<double>& close
 
             if (j.contains("Time Series (Daily)")) {
                 auto time_series = j["Time Series (Daily)"];
+                int ind = 0;
                 for (auto it = time_series.begin(); it != time_series.end(); ++it) {
+                    dayInd.push_back(ind);
                     close.push_back(stod(it.value()["4. close"].get<string>()));
+                    ind++;
                 }
 
                 double S = close[0];
@@ -113,19 +140,35 @@ vector<OptionData> fetch_market_data(const string& symbol, vector<double>& close
     return options;
 }
 
+double Estimate_Stock(vector<double>& x, vector<double>& y){
+    Linear_Regression model(0.01,10000);
+    model.train(x,y);
+    double nd = -1;
+    double S_t = model.predict(nd);
+    return S_t;
+}
+
+
 int main(int argc, char* argv[]) {
     Financial_Analysis FA;
     string ticker = argv[1];
     int num_sims = atoi(argv[2]);
     vector<double> close;
-    auto options = fetch_market_data(ticker,close);
+    vector<double> dayInd;
+    auto options = fetch_market_data(ticker,close,dayInd);
     double r = 0.03;
     double sigma = FA.calc_volatility(close);
     cout << "Estimated Volatility: " << sigma << std::endl;
     cout << "Black-Scholes" << endl << flush;
     evaluate_trades(options, r, sigma);
+    cout << "Black-Scholes_Finte_Difference" << endl << flush;
+    evaluate_trades_FD(options, r, sigma);
     cout << "Monte-Carlo" << endl << flush;
     evaluate_trades_mc(options, r, sigma, num_sims);
+    double pred_S = Estimate_Stock(dayInd,close);
+    cout << "Predicted Stock Tomorrow: " << pred_S << endl;
+
+
     return 0;
 }
 
