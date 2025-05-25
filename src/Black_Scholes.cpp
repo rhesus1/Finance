@@ -1,10 +1,9 @@
 #include "Black_Scholes.h"
+#include <cmath>
 
 using namespace std;
 
-Black_Scholes::Black_Scholes()
-{
-    //ctor
+Black_Scholes::Black_Scholes(){
 }
 
 double Black_Scholes::call(double S, double K, double T, double r, double sigma){
