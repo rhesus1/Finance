@@ -1,30 +1,30 @@
 #ifndef HESTON_FOURIER_H
 #define HESTON_FOURIER_H
 
-
-#include <iostream>
 #include <complex>
-#include <cmath>
-using namespace std;
+#include <string>
+#include <vector>
 
-class Heston_Fourier
-{
-    public:
-        Heston_Fourier(double S0, double K, double T, double r, double v0, double kappa, double theta, double xi, double rho);
-        virtual ~Heston_Fourier();
-    double price_call();
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
-    protected:
+class HestonFourier {
+private:
+    double S0, K, v0, T, r, q;
+    double kappa, theta, sigma, rho;
+    double Lphi, Uphi, dphi;
+    bool debug;
 
-    private:
-        double S0, K, T, r, v0, kappa, theta, xi, rho;
-        const double pi = 3.141592653589793;
+    double HestonProb(std::complex<double> phi, double tau, int j, int Trap);
+    double trapz(const std::vector<double>& y, double dx);
 
-        complex<double> characteristic_function(complex<double> u);
-        double integrate_Pj(int j);
+public:
+    HestonFourier(double S0_, double K_, double v0_, double T_, double r_, double q_,
+                  double kappa_, double theta_, double sigma_, double rho_,
+                  double Lphi_, double Uphi_, double dphi_, bool debug_ = false);
+    void SetDebug(bool d);
+    void HestonPrice(std::string PutCall, int trap, double& HestonC, double& HestonP);
 };
 
-#endif // HESTON_FOURIER_H
-
-
-
+#endif
