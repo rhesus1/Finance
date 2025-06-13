@@ -119,7 +119,6 @@ void Heston_FD::solve(bool is_call) {
         for (iter = 0; iter < max_iter; ++iter) {
             #pragma omp single
             mean_res = 0.0;
-            // Compute residuals (k1)
             #pragma omp for collapse(3) reduction(+:mean_res)
             for (int i = 0; i < N_S - 1; i++) {
                 for (int k = 0; k < N_v - 1; k++) {
@@ -133,8 +132,6 @@ void Heston_FD::solve(bool is_call) {
             #pragma omp single
             mean_res /= ((N_S - 1) * (N_v - 1) * (N_t - 1));
 
-            // RK4 Steps
-            // Compute k2: V_temp = V + (dtau/2) * k1
             #pragma omp for collapse(3)
             for (int i = 0; i < N_S - 1; i++) {
                 for (int k = 0; k < N_v - 1; k++) {
@@ -143,7 +140,6 @@ void Heston_FD::solve(bool is_call) {
                     }
                 }
             }
-            // Apply boundary conditions to V_temp
             #pragma omp for collapse(2)
             for (int k = 0; k < N_v; k++) {
                 for (int j = 0; j < N_t; j++) {
@@ -164,7 +160,6 @@ void Heston_FD::solve(bool is_call) {
                     V_temp[i][k][N_t - 1] = is_call ? max(i * dS - K, 0.0) : max(K - i * dS, 0.0);
                 }
             }
-            // Compute k2
             #pragma omp for collapse(3)
             for (int i = 0; i < N_S - 1; i++) {
                 for (int k = 0; k < N_v - 1; k++) {
@@ -173,7 +168,6 @@ void Heston_FD::solve(bool is_call) {
                     }
                 }
             }
-            // Compute k3: V_temp = V + (dtau/2) * k2
             #pragma omp for collapse(3)
             for (int i = 0; i < N_S - 1; i++) {
                 for (int k = 0; k < N_v - 1; k++) {
@@ -182,7 +176,6 @@ void Heston_FD::solve(bool is_call) {
                     }
                 }
             }
-            // Apply boundary conditions to V_temp
             #pragma omp for collapse(2)
             for (int k = 0; k < N_v; k++) {
                 for (int j = 0; j < N_t; j++) {
@@ -203,7 +196,6 @@ void Heston_FD::solve(bool is_call) {
                     V_temp[i][k][N_t - 1] = is_call ? max(i * dS - K, 0.0) : max(K - i * dS, 0.0);
                 }
             }
-            // Compute k3
             #pragma omp for collapse(3)
             for (int i = 0; i < N_S - 1; i++) {
                 for (int k = 0; k < N_v - 1; k++) {
@@ -212,7 +204,6 @@ void Heston_FD::solve(bool is_call) {
                     }
                 }
             }
-            // Compute k4: V_temp = V + dtau * k3
             #pragma omp for collapse(3)
             for (int i = 0; i < N_S - 1; i++) {
                 for (int k = 0; k < N_v - 1; k++) {
@@ -221,7 +212,6 @@ void Heston_FD::solve(bool is_call) {
                     }
                 }
             }
-            // Apply boundary conditions to V_temp
             #pragma omp for collapse(2)
             for (int k = 0; k < N_v; k++) {
                 for (int j = 0; j < N_t; j++) {
@@ -242,7 +232,6 @@ void Heston_FD::solve(bool is_call) {
                     V_temp[i][k][N_t - 1] = is_call ? max(i * dS - K, 0.0) : max(K - i * dS, 0.0);
                 }
             }
-            // Compute k4
             #pragma omp for collapse(3)
             for (int i = 0; i < N_S - 1; i++) {
                 for (int k = 0; k < N_v - 1; k++) {
@@ -251,7 +240,6 @@ void Heston_FD::solve(bool is_call) {
                     }
                 }
             }
-            // Apply RK4 update with arresting condition
             #pragma omp for collapse(3)
             for (int i = 0; i < N_S - 1; i++) {
                 for (int k = 0; k < N_v - 1; k++) {
@@ -259,18 +247,18 @@ void Heston_FD::solve(bool is_call) {
                         double update = (dtau / 6.0) * (k1[i][k][j] + 2.0 * k2[i][k][j] + 2.0 * k3[i][k][j] + k4[i][k][j]);
                         double accel = res[i][k][j] - res_prev[i][k][j];
                         if (iter > 0 && update * accel < 0) {
-                            res_prev[i][k][j] = res[i][k][j]; // Update previous residual
-                            continue; // Skip update if arresting condition is met
+                            res_prev[i][k][j] = res[i][k][j];
+                            continue;
                         }
                         V[i][k][j] += update;
-                        res_prev[i][k][j] = res[i][k][j]; // Update previous residual
-                        if (V[i][k][j] < 0) V[i][k][j] = 0.0; // Ensure non-negativity
+                        res_prev[i][k][j] = res[i][k][j];
+                        if (V[i][k][j] < 0) V[i][k][j] = 0.0;
                     }
                 }
             }
             #pragma omp single
             {
-                if (iter % 100 == 0) {
+                if (iter % 10000 == 0) {
                     cout << "Iteration: " << iter << ", Mean Residual: " << mean_res << endl;
                 }
             }
@@ -294,5 +282,6 @@ double Heston_FD::get_option_price(double S, double v, bool is_call) {
     double V11 = V[i + 1][k + 1][0];
     double fS = (S - S_i) / dS;
     double fv = (v - v_k) / dv;
+
     return (1 - fS) * (1 - fv) * V00 + fS * (1 - fv) * V10 + (1 - fS) * fv * V01 + fS * fv * V11;
 }
