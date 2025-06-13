@@ -252,7 +252,7 @@ void fetch_market_data(const string& symbol, vector<double>& close, vector<doubl
     CURL* curl = curl_easy_init();
     string response;
     if (curl) {
-        string api_key = "nbOtOYuPxQXHpkwnFrsTQfk6OFaw1SBO";
+        string api_key = "API-KEY";
         string url = "https://api.polygon.io/v2/aggs/ticker/" + symbol + "/range/1/day/2024-01-01/2025-06-08?adjusted=true&sort=asc&limit=50000&apiKey=" + api_key;
         cout << "Fetching Stock Data from: " << url << endl;
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -338,7 +338,7 @@ vector<OptionData> fetch_option_data(const string& symbol, const vector<double>&
     const char* ca_cert_path = "cacert.pem";
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_CAINFO, ca_cert_path);
-        string api_key = "nbOtOYuPxQXHpkwnFrsTQfk6OFaw1SBO";
+        string api_key = "API-KEY";
         vector<string> expiries = {"250620", "250718", "250815", "250919", "251017", "251121", "251219"};
         vector<double> strikes = {100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300};
         for (const auto& expiry : expiries) {
