@@ -31,8 +31,8 @@ Heston_FD::Heston_FD(double S0, double K, double T, double r, double v0, double 
                     V[i][k][j] = is_call ? max(S - K, 0.0) : max(K - S, 0.0);
                 } else {
                     double vol = sqrt(max(v, 0.01));
-                    V[i][k][j] = is_call ? BS.call(S, K, time_to_maturity, r, vol)
-                                         : BS.put(S, K, time_to_maturity, r, vol);
+                    V[i][k][j] = is_call ? BS.call(S, K, time_to_maturity, r, 0.0, vol)
+                                         : BS.put(S, K, time_to_maturity, r, 0.0, vol);
                     if (isnan(V[i][k][j])) {
                         V[i][k][j] = is_call ? max(S - K * exp(-r * time_to_maturity), 0.0)
                                              : max(K * exp(-r * time_to_maturity) - S, 0.0);
