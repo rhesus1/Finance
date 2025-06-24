@@ -78,7 +78,7 @@ Finance/
 ├── LSTM/                 # LSTM stock price prediction
 ├── OptionPricing/        # Black-Scholes and Heston models
 ├── Portfolio/            # Portfolio optimization tools
-├── Utils/                # Shared utilities (e.g., Monte Carlo, linear regression)
+├── Utils/                # Shared utilities (e.g.,Financial Analysis)
 ├── data/                 # Sample datasets (e.g., AMZN_stock.csv)
 ├── docs/                 # Technical reports (e.g., LSTM_Report.pdf)
 ├── tests/                # Unit tests for model validation
