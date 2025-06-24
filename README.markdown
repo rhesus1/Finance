@@ -97,5 +97,5 @@ Finance/
 ## Links
 
 - [Portfolio Website](https://morganjrees.co.uk)
-- [LinkedIn](https://www.linkedin.com/in/morganjrees)
-- [CV](https://morganjrees.co.uk/cv)
+- [LinkedIn](www.linkedin.com/in/morgan-rees-8a5008288)
+- [CV](https://morganjrees.co.uk/#cv)
