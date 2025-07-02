@@ -57,6 +57,3 @@ This project, implemented in a Python script, analyses the price relationship be
 - Rolling correlations vary, indicating other factors influence MSTR price movements.
 - MSTR volatility is lower than BTC during peaks but shows higher overall risk.
 - Volume data offers limited insight into spread fluctuations.
-
-## Licence
-This project is licensed under the MIT Licence. See the [LICENSE](LICENSE) file for details.
